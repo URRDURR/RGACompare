@@ -5,12 +5,12 @@ from PySide6.QtGui import QPalette, QColor
 from gui import MainWindow
 from rgaScanClass import RgaScan
 
-# app = QApplication(sys.argv)
+app = QApplication(sys.argv)
 
-# window = MainWindow()
-# window.show()
+window = MainWindow()
+window.show()
 
-# app.exec()
+app.exec()
 
 # .\sample_scans\2026-06-17 - RGA120.rgadata
 

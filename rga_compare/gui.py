@@ -1,12 +1,14 @@
 import sys
 from PySide6.QtWidgets import QApplication, QLabel, QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QRadioButton, QGroupBox
+from PySide6.QtGui import QIcon
 from graph import RGAPlot
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("My App")
+        self.setWindowTitle("RGA Compare")
+        self.setWindowIcon(QIcon("./resources/icons/rga_compare.ico"))
 
         layout = QVBoxLayout()
 
