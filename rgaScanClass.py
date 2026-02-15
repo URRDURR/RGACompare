@@ -63,9 +63,6 @@ class RgaScan():
         # Note, lots of the Metadata isnt here simply since its superfluous (and there is a lot of it)
         # If needed, go to [website] see how its stored, its in the "Settings JSON" file contained in the scan file
         self.number_of_cycles = None  # how many cycles of scan data
-        self.single_cycle_data_size = None  # size of a single cycle
-        self.number_of_active_scan_steps = None
-        self.step_data_sizes = None  # data size of individual steps
         
         self.pointsPerAmu = None
         self.scanRate = None
@@ -84,6 +81,8 @@ class RgaScan():
         self.gpio_in_signals = None
 
         self.load_scan_data(filename)
+
+
 
     def load_scan_data(self, filename):
         """
@@ -127,9 +126,6 @@ class RgaScan():
                 # single_cycle_data_size = SumOf(step_data_sizes) + Auxiliary_signal_sizes
 
             self.number_of_cycles = metadata_list[4]  # how many cycles of scan data
-            self.single_cycle_data_size = metadata_list[5]  # size of a single cycle
-            self.number_of_active_scan_steps = metadata_list[6]
-            self.step_data_sizes = metadata_list[7:upper_index]  # data size of individual steps
 
             # The Settings in the JSON format can give the details of the scan sequence:
             #  How many steps, what kind of scan in each step, what settings for
@@ -237,6 +233,10 @@ class RgaScan():
 
             self.spectra = np.array(self.spectra)
 
-    # def AMU_vs_Torr_plot_data(self):
-    #     """Creates the x and y data for an AMU vs. Torr Plot"""
+    def AMU_linspace(self):
+        """Creates the x axis data for an AMU vs. y Plot"""
+
+        total_data_points_per_cycle = (self.stopMass - self.startMass) * self.pointsPerAmu + 1
+        amu_vector =  np.linspace(self.startMass, self.stopMass, total_data_points_per_cycle)
+        return amu_vector
 

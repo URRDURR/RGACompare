@@ -16,15 +16,7 @@ from rgaScanClass import RgaScan
 
 file = RgaScan(".\\sample_scans\\2026-06-17 - RGA120.rgadata")
 
-print(file.spectra)
-print(file.number_of_cycles)
-print(file.single_cycle_data_size)
-print(file.number_of_active_scan_steps)
-print(file.step_data_sizes)
-
-print(file.pointsPerAmu)
-print(file.scanRate)
-print(file.startMass)
-print(file.stopMass)
+print(len(file.spectra[1]))
+print(len(file.AMU_linspace()))
 
 print("HIIIIIIIIIIII")
