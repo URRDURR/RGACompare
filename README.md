@@ -3,9 +3,10 @@
         <img src="https://github.com/URRDURR/RGACompare/blob/main/resources/icons/rga_compare.png" height="300">
     </a>
 </p>
+
 # RGACompare
 
-A program for plotting multiple RGASoft .rgadata scan files for easy comparison
+A program for plotting multiple RGASoft .rgadata scan files for easy comparison between scans.
 
 # Installation
 
