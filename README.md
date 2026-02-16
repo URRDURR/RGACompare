@@ -1,6 +1,6 @@
 <p align="center">
     <a href="https://github.com/URRDURR/RGACompare">
-        <img src="https://github.com/URRDURR/RGACompare/main/resources/icons/rga_compare.png">
+        <img src="https://github.com/URRDURR/RGACompare/blob/main/resources/icons/rga_compare.png">
     </a>
 </p>
 
