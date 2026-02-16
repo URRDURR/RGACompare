@@ -18,6 +18,7 @@
 import struct
 import json
 import numpy as np
+from PySide6.QtCore import QObject, Signal
 
 def read_int(fd):
     bytes = fd.read(4)
@@ -82,9 +83,11 @@ class RgaScan():
 
         self.load_scan_data(filename)
 
+        self.colour = None # Unique colour for gui purpouses
 
 
-    def load_scan_data(self, filename):
+
+    def load_scan_data(self, filename: str):
         """
         Loads in the entirety of the scan data and metadata for the RGASoft .rgadata filetype.
         Takes in the location of a .rgadata file and populates the RgaScan object
@@ -233,10 +236,56 @@ class RgaScan():
 
             self.spectra = np.array(self.spectra)
 
-    def AMU_linspace(self):
+    def amu_vector(self):
         """Creates the x axis data for an AMU vs. y Plot"""
 
         total_data_points_per_cycle = (self.stopMass - self.startMass) * self.pointsPerAmu + 1
         amu_vector =  np.linspace(self.startMass, self.stopMass, total_data_points_per_cycle)
         return amu_vector
+    
+    # def torr_vector(self, index: int):
+    #     """Returns the torr_array of a specific index, """
 
+class RgaScanArray(QObject):
+
+    scan_added = Signal(object)  
+    scan_removed = Signal(object)  
+
+    def __init__(self):
+        super().__init__()
+
+        self.scans = []
+
+        # self.plot_colours = ['#ff5454','#428bca','#f37735','#5cb85c']
+        self.plot_colours = [
+            "#1f77b4",  # blue
+            "#ff7f0e",  # orange
+            "#2ca02c",  # green
+            "#d62728",  # red
+            "#9467bd",  # purple
+            "#8c564b",  # brown
+            "#e377c2",  # pink
+            "#7f7f7f",  # gray
+            "#bcbd22",  # olive
+            "#17becf",  # cyan
+            "#aec7e8",  # light blue
+            "#ffbb78",  # light orange
+]
+        self.available_plot_colours = self.plot_colours
+
+    def add_scan(self, scan: RgaScan):
+
+        gui_colour = self.available_plot_colours.pop(0)
+        scan.colour = gui_colour
+
+        self.scans.append(scan)
+        self.scan_added.emit(scan)
+
+    def remove_scan(self, scan: RgaScan):
+
+        self.scans.remove(scan)
+        self.scan_removed.emit(scan)
+
+    def return_scan(self, index: int):
+        
+        return self.scans[index]

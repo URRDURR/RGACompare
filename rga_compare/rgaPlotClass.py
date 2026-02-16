@@ -1,16 +1,33 @@
 import pyqtgraph as pg
 import numpy as np
 from PySide6 import QtWidgets, QtCore
+from rgaScanClass import RgaScan
 
 class RGAPlot(pg.PlotWidget):
     def __init__(self):
         super().__init__()
 
-        self.data = np.array([1,2,3,4,5,6,7,8,9,10])
-        self.plotItem.plot(y = self.data)
+        self.scans_objects = []
+
+        # self.plot_colours = ['#ff5454','#428bca','#f37735','#5cb85c']
+        # self.available_plot_colours = self.plot_colours
+
+        self.x_test_data = np.array([1,2,3,4,5,6,7,8,9,10])
+        self.y_test_data = np.array([2,4,6,8,10,12,14,16,18,20])
 
 
+    def add_plot(self, scan: RgaScan):
 
+        self.scans_objects.append(scan)
+        self.plot(scan.amu_vector(), scan.spectra[1], pen = pg.mkPen(scan.colour, width = 2))
+
+    def remove_plot(self, scan: RgaScan):
+            
+            pass
+    
+    def change_axis_scale(self, log_mode: bool):
+         
+         self.getPlotItem().setLogMode(y = log_mode)
 
 
 
