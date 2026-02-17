@@ -10,8 +10,8 @@ class RGAPlot(pg.PlotWidget):
         # self.scans_objects = []
 
         pg.setConfigOptions(
-            antialias=False,        # Antialiasing is a massive performance killer on large windows
-            # useOpenGL=True, 
+            antialias=True,
+            useOpenGL=True, 
             enableExperimental=True # Enables faster curve drawing
         )
 

@@ -140,13 +140,12 @@ class MainWindow(QMainWindow):
         widget.setLayout(total_layout)
 
         item1 = QListWidgetItem()
-        item1.setSizeHint(QSize(300, 50))
+        # item1.setSizeHint(QSize(300, 50))
+        item1.setSizeHint(widget.sizeHint())    
         self.list.addItem(item1)
         self.list.setItemWidget(item1, widget)
 
-        button.clicked.connect(lambda: self.list.removeItemWidget(item1))
-
-        # widget.setFixedHeight(50)  
+        button.clicked.connect(lambda: self.list.takeItem(self.list.row(item1)))
 
     def open_rga_scan(self):
 
@@ -163,9 +162,6 @@ class MainWindow(QMainWindow):
         scan_name = scan_added.file_identifier
         scan_colour = scan_added.colour
 
-        item1 = QListWidgetItem()
-        item1.setSizeHint(QSize(300, 50))
-        self.list.addItem(item1)
         self.create_scan_widget(scan_name, scan_colour, scan_added)
 
     def on_scan_removed(self, scan_added):

@@ -283,6 +283,7 @@ class RgaScanArray(QObject):
 
     def remove_scan(self, scan: RgaScan):
 
+        self.available_plot_colours.insert(0, scan.colour)
         self.scan_files.remove(scan)
         self.scan_removed.emit(scan)
 
