@@ -1,6 +1,6 @@
 <p align="center">
     <a href="https://github.com/URRDURR/RGACompare">
-        <img src="https://github.com/URRDURR/RGACompare/blob/main/resources/icons/rga_compare.png" height="300">
+        <img src="https://github.com/URRDURR/RGACompare/blob/main/resources/icons/rga_compare.png" height="200">
     </a>
 </p>
 
@@ -17,7 +17,7 @@ Clone repository and run the ```main.py``` to start the program
 pip install numpy pyqtgraph PySide6 qt-themes
 
 ```
-requirments are also in '``requirments.txt``'
+requirments are also in '``requirements.txt``'
 ```sh
 # Install dependencies
 pip install -r requirements.txt
