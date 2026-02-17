@@ -1,7 +1,7 @@
 import pyqtgraph as pg
 import numpy as np
 from PySide6 import QtWidgets, QtCore
-from rgaScanClass import RgaScan, RgaScanArray
+from rgaScanClass import RgaScan, RgaScanList
 
 class RGAPlot(pg.PlotWidget):
     def __init__(self):
@@ -27,19 +27,10 @@ class RGAPlot(pg.PlotWidget):
 
         self.set_plot_theme()
 
-        # self.plot_colours = ['#ff5454','#428bca','#f37735','#5cb85c']
-        # self.available_plot_colours = self.plot_colours
+    def replot(self, scans: RgaScanList):
 
-        # self.x_test_data = np.array([1,2,3,4,5,6,7,8,9,10])
-        # self.y_test_data = np.array([2,4,6,8,10,12,14,16,18,20])
-
-
-    def replot(self, scans: RgaScanArray):
-
-        # for i, scan in enumerate(scans.scan_files):
-
+        # Aspect representing the characteristics of the viewbox/viewable area
         view_box = self.getPlotItem().getViewBox()
-        current_range = view_box.viewRange()  # [[xmin, xmax], [ymin, ymax]]
 
         # set up the variable for limits, apply constants so that they are always initially overwritten
         x_lim_upper = -1
@@ -50,15 +41,22 @@ class RGAPlot(pg.PlotWidget):
         # Clear and replot
         self.clear()
 
-        for i in range(scans.return_scan_file_length()):
-            # self.scans_objects.append(scan)
-            scan = scans.return_scan_file(i)
-            cycle = scan.spectra[len(scan.spectra) - 1]
-            self.getPlotItem().plot(scan.amu_vector(), cycle, pen = pg.mkPen(scan.colour, width = 2))
+        # sets the view back to default conditions when all plots are removed
+        if len(scans) == 0: 
+            self.setLimits(xMin=-100, xMax=100, yMin=-100, yMax=100)
+            view_box.setRange(xRange=(0,1),yRange=(0,1))
+            return
+
+        # Plots every scan in the RgaScanList
+        for i in range(len(scans)):
+            scan = scans.get_scan(i)
+            cycle = scan.get_cycle(scan.number_of_cyles() - 1)
+            self.getPlotItem().plot(scan.amu_axis(), cycle, pen = pg.mkPen(scan.colour, width = 2))
 
             y_max = np.max(cycle)
             y_min = np.min(cycle, where=(cycle > 0), initial=np.inf)
 
+            # Measures the range of values for setting view range limits
             if x_lim_upper < scan.stopMass: x_lim_upper = scan.stopMass
             if x_lim_lower > scan.startMass: x_lim_lower = scan.startMass
             if y_lim_upper < y_max: y_lim_upper = y_max
@@ -71,47 +69,28 @@ class RGAPlot(pg.PlotWidget):
 
         self.set_axis_limits()
 
-        # view_box.setRange(xRange=current_range[0], yRange=current_range[1])
-    
-    # def add_plot(self, scan: RgaScan):
-
-    #     self.scans_objects.append(scan)
-    #     self.getPlotItem().plot(scan.amu_vector(), scan.spectra[1], pen = pg.mkPen(scan.colour, width = 2))
-
-    # def remove_plot(self, scan: RgaScan):
-            
-    #         pass
-
     def set_axis_limits(self):
         
         view_box = self.getPlotItem().getViewBox()
 
+        # Creates the padding space for sides of plot so the viewbox is less cramped
         padding_x = (self.x_lim_upper - self.x_lim_lower) * 0.02  # 2% padding
         padding_y = (self.y_lim_upper - self.y_lim_lower) *  0.02
 
+        # Sets x axis limits
         view_box.setLimits(
             xMin = (self.x_lim_lower - padding_x),
             xMax = (self.x_lim_upper + padding_x),
         )
 
-        print("y_lim_upper:", self.y_lim_upper)
-        print("y_lim_lower:", self.y_lim_lower)
-
         if self.log_mode:
-            # For log scale: minimum must be > 0
-            # Use 1% of the current max as the minimum
+            # Sets log y axis limits (accounts for the fact the Pyqtgraph takes the 10^x of limits given)
             y_min = (np.log10(self.y_lim_lower))
             y_max = (np.log10(self.y_lim_upper))
-            print("y_min:", y_min)
-            print("y_max:", y_max)
-            
-            # Update limits for log scale
             view_box.setLimits(yMin=y_min, yMax=y_max) 
         else:
-            # For linear scale: can use 0
-            view_box.setLimits(yMin = 0 - padding_y, yMax = self.y_lim_upper + padding_y)
-
-        # self.getPlotItem().autoRange()
+            # Sets linear y axis limits
+            view_box.setLimits(yMin = self.y_lim_lower - padding_y, yMax = self.y_lim_upper + padding_y)
     
     def change_axis_scale(self, log_mode: bool):
          

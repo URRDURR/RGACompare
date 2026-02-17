@@ -63,8 +63,6 @@ class RgaScan():
         # Metadata/Settings
         # Note, lots of the Metadata isnt here simply since its superfluous (and there is a lot of it)
         # If needed, go to [website] see how its stored, its in the "Settings JSON" file contained in the scan file
-        self.number_of_cycles = None  # how many cycles of scan data
-        
         self.pointsPerAmu = None
         self.scanRate = None
         self.startMass = None
@@ -85,20 +83,17 @@ class RgaScan():
 
         self.colour = None # Unique colour for gui purpouses
 
-
-
     def load_scan_data(self, filename: str):
         """
         Loads in the entirety of the scan data and metadata for the RGASoft .rgadata filetype.
         Takes in the location of a .rgadata file and populates the RgaScan object
 
         Most of this is lifted verbaitem from the sample code given with the RGASoft installation (more detail in the manual)
-        Documentation on the RGASoft RGA data file structure located at: [website]
+        Documentation on the RGASoft RGA data file structure located in manual
         
         Args:
             filename (string): file location
         """
-
         with open(filename, "rb") as f:
             # File description - 32-byte string
             self.f_identifier = f.read(32)
@@ -127,8 +122,6 @@ class RgaScan():
                 # Calculation:
                 # data_size = single_cycle_data_size * number_of_cycles
                 # single_cycle_data_size = SumOf(step_data_sizes) + Auxiliary_signal_sizes
-
-            self.number_of_cycles = metadata_list[4]  # how many cycles of scan data
 
             # The Settings in the JSON format can give the details of the scan sequence:
             #  How many steps, what kind of scan in each step, what settings for
@@ -162,40 +155,32 @@ class RgaScan():
             self.analog_Iin_signals = []
             self.gpio_in_signals = []
             for cycle in range(number_of_cycles):
-                # print('\ncycle =', cycle + 1)
                 
                 # Auxiliary signals
                 if self.f_version > 17:
                     # Total pressure
                     total_pressure = read_float(f)
                     self.total_pressures.append(total_pressure)
-                    # print('Total pressure =', total_pressure)
                     
                     # RTD temperature
                     rtd_t = read_float(f)
                     self.rtd_temperatures.append(rtd_t)
-                    # print('RTD temperature =', rtd_t)
                     
                     # Flange temperature
                     flange_t = read_float(f)
                     self.flange_temperatures.append(flange_t)
-                    # print('Flange temperature =', flange_t)
                     
                     # Analog Vin
                     analog_Vin = read_float(f)
                     self.analog_Vin_signals.append(analog_Vin)
-                    # print('Analog Vin =', analog_Vin)
                     
                     # Analog Iin
                     analog_Iin = read_float(f)
                     self.analog_Iin_signals.append(analog_Iin)
-                    # print('Analog Iin =', analog_Iin)
                     
                     # GPIO input
                     gpio_in = read_int(f)
                     self.gpio_in_signals.append(gpio_in)
-                    # print('GPIO input =', gpio_in)
-                    # print()
                 
                 # Step data
                 for step in range(len(step_data_sizes)):
@@ -219,34 +204,45 @@ class RgaScan():
                         json_step2 = json_settings['cfgs'][1]
                         json_gases = json_step2['gases']
                         n_gases = len(json_gases)
-                        print('PvsT number of gases =', n_gases)
-                        print('PvsT gases =', json_gases)
+                        # print('PvsT number of gases =', n_gases)
+                        # print('PvsT gases =', json_gases)
                         # Signal intensities - N gases: N float values
                         scan_signals = []
                         bytes = f.read(n_gases * 4)
                         scan_signals = [struct.unpack('f', bytes[4*i:4*i+4])[0] for i in range(n_gases)]
                         self.pvst.append(scan_signals)
-                        print('PvsT signals =', scan_signals)
+                        # print('PvsT signals =', scan_signals)
                 
                     if SKIP_STEP2_DATA:
                         # Skip next step's data
                         second_step_data_size = step_data_sizes[1]
                         f.seek(second_step_data_size, 1)  # skip N bytes from the current file position
                         break
-
+            
+            # Makes scan spectra into np array for easier usage
             self.spectra = np.array(self.spectra)
 
-    def amu_vector(self):
-        """Creates the x axis data for an AMU vs. y Plot"""
+    def amu_axis(self) -> np.ndarray:
+        """Creates the x axis data for an AMU vs. y Plot
+
+        Returns:
+            np.ndarray: An np.ndarray containing all AMU axis points
+        """
 
         total_data_points_per_cycle = (self.stopMass - self.startMass) * self.pointsPerAmu + 1
         amu_vector =  np.linspace(self.startMass, self.stopMass, total_data_points_per_cycle)
         return amu_vector
     
-    # def torr_vector(self, index: int):
+    def number_of_cyles(self) -> int:
+        return len(self.spectra) - 1
+
+    def get_cycle(self, index: int) -> int:
+        return self.spectra[index]
+
+    # def torr_axis(self, index: int):
     #     """Returns the torr_array of a specific index, """
 
-class RgaScanArray(QObject):
+class RgaScanList(QObject):
 
     scan_added = Signal(object)  
     scan_removed = Signal(object)  
@@ -256,7 +252,6 @@ class RgaScanArray(QObject):
 
         self.scan_files = []
 
-        # self.plot_colours = ['#ff5454','#428bca','#f37735','#5cb85c']
         self.plot_colours = [
             "#1f77b4",  # blue
             "#ff7f0e",  # orange
@@ -271,26 +266,36 @@ class RgaScanArray(QObject):
             "#aec7e8",  # light blue
             "#ffbb78",  # light orange
 ]
-        self.available_plot_colours = self.plot_colours
+        self.available_plot_colours = self.plot_colours.copy()
 
     def add_scan(self, scan: RgaScan):
+        """Adds a scan to the internal list and emits a signal to update Plot and GUI elements
 
+        Args:
+            scan (RgaScan): The RgaScan object of the newly added scan
+        """
+        # Repopulates available plot colours if ever exausted
+        if not self.available_plot_colours: 
+            self.available_plot_colours = self.plot_colours.copy()
+
+        # Allocates a colour to the new scan
         gui_colour = self.available_plot_colours.pop(0)
         scan.colour = gui_colour
 
         self.scan_files.append(scan)
-        self.scan_added.emit(scan)
+        self.scan_added.emit(scan) # Emits signal to update Plot and GUI
 
     def remove_scan(self, scan: RgaScan):
 
-        self.available_plot_colours.insert(0, scan.colour)
+        self.available_plot_colours.insert(0, scan.colour) # Frees up colour by adding back to pool for reassignment 
         self.scan_files.remove(scan)
-        self.scan_removed.emit(scan)
+        self.scan_removed.emit(scan) # Emits signal to update Plot and GUI
 
-    def return_scan_file(self, index: int) -> RgaScan:
-
+    def get_scan(self, index: int) -> RgaScan:
         return self.scan_files[index]
     
-    def return_scan_file_length(self) -> int:
-
+    def number_of_scans(self) -> int:
+        return len(self.scan_files)
+    
+    def __len__(self) -> int:
         return len(self.scan_files)

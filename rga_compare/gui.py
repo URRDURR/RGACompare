@@ -1,27 +1,43 @@
 import sys
 import os
-from PySide6.QtWidgets import (QApplication, QLabel, QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout,
-QWidget, QRadioButton, QGroupBox, QFileDialog, QTableWidget, QSizePolicy, QSplitter, QTableWidgetItem, 
-QHeaderView, QListWidget, QListWidgetItem, QMenuBar)
+from PySide6.QtWidgets import (
+    QApplication,
+    QLabel,
+    QMainWindow,
+    QPushButton,
+    QVBoxLayout,
+    QHBoxLayout,
+    QWidget,
+    QRadioButton,
+    QGroupBox,
+    QFileDialog,
+    QTableWidget,
+    QSizePolicy,
+    QSplitter,
+    QTableWidgetItem,
+    QHeaderView,
+    QListWidget,
+    QListWidgetItem,
+    QMenuBar,
+)
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QIcon, QColor, QPixmap
 from rgaPlotClass import RGAPlot
-from rgaScanClass import RgaScanArray, RgaScan
+from rgaScanClass import RgaScanList, RgaScan
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
         self.rga_plot_widget = RGAPlot()
-        self.rga_scans = RgaScanArray()
+        self.rga_scans = RgaScanList()
         self.table = None
 
         self.setWindowTitle("RGA Compare")
         self.setWindowIcon(QIcon("./resources/icons/rga_compare.ico"))
 
-        layout = QVBoxLayout()
-
-        file_button = QPushButton()
+        file_button = QPushButton("Open Scans")
 
         sidebar_layout = QVBoxLayout()
         sidebar_layout.addWidget(self.create_linear_log_buttons())
@@ -36,11 +52,6 @@ class MainWindow(QMainWindow):
         splitter.addWidget(self.create_RGA_plot(self.rga_plot_widget))
         splitter.setSizes([200, 600])
 
-        # center_layout = QHBoxLayout()
-        # center_layout.addLayout(sidebar_layout)
-        # center_layout.addWidget(self.create_RGA_plot(self.rga_plot_widget))
-        # center_layout.setStretch(1, 3)  
-
         self.menu_bar = self.menuBar()
         self.setMenuBar(self.menu_bar)
         file_menu = self.menu_bar.addMenu("File")
@@ -49,13 +60,12 @@ class MainWindow(QMainWindow):
         recent_menu.addAction("Document 2")
         recent_menu.addAction("Document 3")
 
+        layout = QVBoxLayout()
         layout.addWidget(splitter)
 
         central_widget = QWidget()
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
-
-
 
         file_button.clicked.connect(self.open_rga_scan)
         self.rga_scans.scan_added.connect(self.on_scan_added)
@@ -64,7 +74,7 @@ class MainWindow(QMainWindow):
     def create_linear_log_buttons(self):
         """Generates the box for the Linear and Logarithmic radio buttons for the plot"""
         group_box = QGroupBox("Linear or Logarithmic")
-        
+
         self.lin_button = QRadioButton("Linear")
         self.log_button = QRadioButton("Log")
 
@@ -80,8 +90,8 @@ class MainWindow(QMainWindow):
         group_box.setLayout(layout)
 
         return group_box
-    
-    def create_RGA_plot(self,rga_plot):
+
+    def create_RGA_plot(self, rga_plot):
         """Generates the Plot for the RGA data (mostly here for organization)"""
         group_box = QGroupBox("RGA Plot")
 
@@ -93,17 +103,10 @@ class MainWindow(QMainWindow):
         return group_box
 
     def create_scan_table(self):
-        
+
         group_box = QGroupBox("Scans")
 
         self.list = QListWidget()
-
-        button = QPushButton()
-
-        # item1 = QListWidgetItem()
-        # self.list.addItem(item1)
-        # item1.setSizeHint(QSize(300, 50))
-        # self.list.setItemWidget(item1, self.create_scan_widget())
 
         layout = QVBoxLayout()
         layout.addWidget(self.list)
@@ -111,61 +114,72 @@ class MainWindow(QMainWindow):
         group_box.setLayout(layout)
 
         return group_box
-        
-    def create_scan_widget(self, scan_name: str, scan_colour: str, scan_added: RgaScan):
-        
-        total_layout = QVBoxLayout()
 
+    def create_scan_widget(self, scan_name: str, scan_colour: str, scan_added: RgaScan):
+        """Generates a listWidgetItem to the sidebar when a scan/plot is added containing quick info and
+        options for the added plot (e.g. name, plot colour, remove scan button)
+
+        Args:
+            scan_name (str): The filename of the scan added (currently bugged)
+            scan_colour (str): The plot colour assigned to the scan
+            scan_added (RgaScan): the RgaScan object of the newly added scan
+        """
         name = QLabel(scan_name)
 
-        colour = QWidget()
-        colour.setFixedSize(15, 15)
-        colour.setStyleSheet(f"""
-            background-color: {scan_colour};
-            border: 1.4px solid black;
-        """)
+        colour_icon = QWidget()
+        colour_icon.setFixedSize(15, 15)
+        colour_icon.setStyleSheet(
+            f"background-color: {scan_colour}; border: 1.4px solid black;"
+        )
 
-        top_layout = QHBoxLayout()
+        remove_plot_button = QPushButton("remove")
+        remove_plot_button.clicked.connect(
+            lambda: self.rga_scans.remove_scan(scan_added)
+        )
+        remove_plot_button.clicked.connect(
+            lambda: self.list.takeItem(self.list.row(list_item))
+        )
 
-        top_layout.addWidget(colour)
-        top_layout.addWidget(name)
+        top_half_layout = QHBoxLayout()
+        top_half_layout.addWidget(colour_icon)
+        top_half_layout.addWidget(name)
 
-        button = QPushButton("remove")
-        button.clicked.connect(lambda: self.rga_scans.remove_scan(scan_added))
+        total_layout = QVBoxLayout()
+        total_layout.addLayout(top_half_layout)
+        total_layout.addWidget(remove_plot_button)
+        list_widget = QWidget()
+        list_widget.setLayout(total_layout)
 
-        total_layout.addLayout(top_layout)
-        total_layout.addWidget(button)
-
-        widget = QWidget()
-        widget.setLayout(total_layout)
-
-        item1 = QListWidgetItem()
-        # item1.setSizeHint(QSize(300, 50))
-        item1.setSizeHint(widget.sizeHint())    
-        self.list.addItem(item1)
-        self.list.setItemWidget(item1, widget)
-
-        button.clicked.connect(lambda: self.list.takeItem(self.list.row(item1)))
+        list_item = QListWidgetItem()
+        list_item.setSizeHint(list_widget.sizeHint())
+        self.list.addItem(list_item)
+        self.list.setItemWidget(list_item, list_widget)
 
     def open_rga_scan(self):
-
-        files, _ = QFileDialog().getOpenFileNames(self, "Select file(s) to open")
-
+        """Opens a file dialog to select .rgadata scan files to plot"""
+        files, _ = QFileDialog().getOpenFileNames(
+            self, "Select file(s) to open", "", "RGASoft Scans (*.rgadata)"
+        )
         for file in files:
             scan = RgaScan(file)
             self.rga_scans.add_scan(scan)
 
     def on_scan_added(self, scan_added: RgaScan):
-        
+        """Runs various plot and GUI updates when a scan is added
+
+        Args:
+            scan_added (RgaScan): The RgaScan object of the newly added scan
+        """
         self.rga_plot_widget.replot(self.rga_scans)
-        
+
         scan_name = scan_added.file_identifier
         scan_colour = scan_added.colour
-
         self.create_scan_widget(scan_name, scan_colour, scan_added)
 
-    def on_scan_removed(self, scan_added):
-        
-        self.rga_plot_widget.replot(self.rga_scans)
+    def on_scan_removed(self, scan_removed: RgaScan):
+        """Runs various plot and GUI updates when a scan is removed
 
-    
+        Args:
+            scan_removed (_type_): The RgaScan object of the newly added scan
+        """
+        self.rga_plot_widget.replot(self.rga_scans)
