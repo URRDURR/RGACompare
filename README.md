@@ -14,7 +14,14 @@ Clone repository and run the ```main.py``` to start the program
 
 ```sh
 # Install dependencies
-pip install numpy pyqtgraph PySide6
+pip install numpy pyqtgraph PySide6 qt-themes
 
 ```
 requirments are also in '``requirments.txt``'
+```sh
+# Install dependencies
+pip install -r requirements.txt
+
+```
+
+# Usage

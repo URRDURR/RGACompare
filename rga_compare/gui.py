@@ -1,9 +1,10 @@
 import sys
 import os
 from PySide6.QtWidgets import (QApplication, QLabel, QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout,
-QWidget, QRadioButton, QGroupBox, QFileDialog, QTableWidget, QSizePolicy, QSplitter, QTableWidgetItem, QHeaderView, QListWidget, QListWidgetItem)
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QIcon
+QWidget, QRadioButton, QGroupBox, QFileDialog, QTableWidget, QSizePolicy, QSplitter, QTableWidgetItem, 
+QHeaderView, QListWidget, QListWidgetItem, QMenuBar)
+from PySide6.QtCore import Qt, QSize
+from PySide6.QtGui import QIcon, QColor, QPixmap
 from rgaPlotClass import RGAPlot
 from rgaScanClass import RgaScanArray, RgaScan
 
@@ -40,6 +41,14 @@ class MainWindow(QMainWindow):
         # center_layout.addWidget(self.create_RGA_plot(self.rga_plot_widget))
         # center_layout.setStretch(1, 3)  
 
+        self.menu_bar = self.menuBar()
+        self.setMenuBar(self.menu_bar)
+        file_menu = self.menu_bar.addMenu("File")
+        recent_menu = file_menu.addMenu("Recent Files")
+        recent_menu.addAction("Document 1")
+        recent_menu.addAction("Document 2")
+        recent_menu.addAction("Document 3")
+
         layout.addWidget(splitter)
 
         central_widget = QWidget()
@@ -50,6 +59,7 @@ class MainWindow(QMainWindow):
 
         file_button.clicked.connect(self.open_rga_scan)
         self.rga_scans.scan_added.connect(self.on_scan_added)
+        self.rga_scans.scan_removed.connect(self.on_scan_removed)
 
     def create_linear_log_buttons(self):
         """Generates the box for the Linear and Logarithmic radio buttons for the plot"""
@@ -90,21 +100,10 @@ class MainWindow(QMainWindow):
 
         button = QPushButton()
 
-        self.list.addItem(QListWidgetItem("Geeks"))
-        self.list.setItemWidget(QListWidgetItem("Geeks"), button)
-
-        # self.table = QTableWidget()
-        # self.table.setColumnCount(3)
-        # self.table.setRowCount(1)
-        # self.table.setHorizontalHeaderLabels(["Colour","Name","Range"])
-        # self.table.setItem(0,0,QTableWidgetItem('#ffffff'))
-        # self.table.setItem(0,1,QTableWidgetItem("White"))
-        # self.table.setItem(0,2,QTableWidgetItem("12-14"))
-
-        # header = self.table.horizontalHeader()
-        # header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
-        # header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-        # header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+        # item1 = QListWidgetItem()
+        # self.list.addItem(item1)
+        # item1.setSizeHint(QSize(300, 50))
+        # self.list.setItemWidget(item1, self.create_scan_widget())
 
         layout = QVBoxLayout()
         layout.addWidget(self.list)
@@ -113,6 +112,41 @@ class MainWindow(QMainWindow):
 
         return group_box
         
+    def create_scan_widget(self, scan_name: str, scan_colour: str, scan_added: RgaScan):
+        
+        total_layout = QVBoxLayout()
+
+        name = QLabel(scan_name)
+
+        colour = QWidget()
+        colour.setFixedSize(15, 15)
+        colour.setStyleSheet(f"""
+            background-color: {scan_colour};
+            border: 1.4px solid black;
+        """)
+
+        top_layout = QHBoxLayout()
+
+        top_layout.addWidget(colour)
+        top_layout.addWidget(name)
+
+        button = QPushButton("remove")
+        button.clicked.connect(lambda: self.rga_scans.remove_scan(scan_added))
+
+        total_layout.addLayout(top_layout)
+        total_layout.addWidget(button)
+
+        widget = QWidget()
+        widget.setLayout(total_layout)
+
+        item1 = QListWidgetItem()
+        item1.setSizeHint(QSize(300, 50))
+        self.list.addItem(item1)
+        self.list.setItemWidget(item1, widget)
+
+        button.clicked.connect(lambda: self.list.removeItemWidget(item1))
+
+        # widget.setFixedHeight(50)  
 
     def open_rga_scan(self):
 
@@ -122,7 +156,19 @@ class MainWindow(QMainWindow):
             scan = RgaScan(file)
             self.rga_scans.add_scan(scan)
 
-    def on_scan_added(self, scans: RgaScanArray):
+    def on_scan_added(self, scan_added: RgaScan):
+        
+        self.rga_plot_widget.replot(self.rga_scans)
+        
+        scan_name = scan_added.file_identifier
+        scan_colour = scan_added.colour
+
+        item1 = QListWidgetItem()
+        item1.setSizeHint(QSize(300, 50))
+        self.list.addItem(item1)
+        self.create_scan_widget(scan_name, scan_colour, scan_added)
+
+    def on_scan_removed(self, scan_added):
         
         self.rga_plot_widget.replot(self.rga_scans)
 
