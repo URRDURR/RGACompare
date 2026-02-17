@@ -5,16 +5,19 @@ from PySide6.QtGui import QPalette, QColor
 from gui import MainWindow
 from rgaScanClass import RgaScan, RgaScanArray
 
-app = QApplication(sys.argv)
+# print(np.log(0))
 
-window = MainWindow()
-window.show()
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
 
-app.exec()
+    window = MainWindow()
+    window.show()
 
-file = RgaScan(".\\sample_scans\\2026-06-17 - RGA120.rgadata")
+    app.exec()
 
-print(len(file.spectra[1]))
-print(len(file.amu_vector()))
+# file = RgaScan(".\\sample_scans\\2026-06-17 - RGA120.rgadata")
 
-print("HIIIIIIIIIIII")
+# print(len(file.spectra[1]))
+# print(len(file.amu_vector()))
+
+print("Program has finished running")

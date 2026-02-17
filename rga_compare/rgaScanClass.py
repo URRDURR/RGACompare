@@ -254,7 +254,7 @@ class RgaScanArray(QObject):
     def __init__(self):
         super().__init__()
 
-        self.scans = []
+        self.scan_files = []
 
         # self.plot_colours = ['#ff5454','#428bca','#f37735','#5cb85c']
         self.plot_colours = [
@@ -278,14 +278,18 @@ class RgaScanArray(QObject):
         gui_colour = self.available_plot_colours.pop(0)
         scan.colour = gui_colour
 
-        self.scans.append(scan)
+        self.scan_files.append(scan)
         self.scan_added.emit(scan)
 
     def remove_scan(self, scan: RgaScan):
 
-        self.scans.remove(scan)
+        self.scan_files.remove(scan)
         self.scan_removed.emit(scan)
 
-    def return_scan(self, index: int):
-        
-        return self.scans[index]
+    def return_scan_file(self, index: int) -> RgaScan:
+
+        return self.scan_files[index]
+    
+    def return_scan_file_length(self) -> int:
+
+        return len(self.scan_files)

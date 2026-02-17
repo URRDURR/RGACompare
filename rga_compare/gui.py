@@ -1,6 +1,8 @@
 import sys
 import os
-from PySide6.QtWidgets import QApplication, QLabel, QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QRadioButton, QGroupBox, QFileDialog
+from PySide6.QtWidgets import (QApplication, QLabel, QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout,
+QWidget, QRadioButton, QGroupBox, QFileDialog, QTableWidget, QSizePolicy, QSplitter, QTableWidgetItem, QHeaderView, QListWidget, QListWidgetItem)
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 from rgaPlotClass import RGAPlot
 from rgaScanClass import RgaScanArray, RgaScan
@@ -11,6 +13,7 @@ class MainWindow(QMainWindow):
 
         self.rga_plot_widget = RGAPlot()
         self.rga_scans = RgaScanArray()
+        self.table = None
 
         self.setWindowTitle("RGA Compare")
         self.setWindowIcon(QIcon("./resources/icons/rga_compare.ico"))
@@ -21,13 +24,23 @@ class MainWindow(QMainWindow):
 
         sidebar_layout = QVBoxLayout()
         sidebar_layout.addWidget(self.create_linear_log_buttons())
+        sidebar_layout.addWidget(self.create_scan_table())
         sidebar_layout.addWidget(file_button)
+        sidebar_widget = QWidget()
+        sidebar_widget.setLayout(sidebar_layout)
+        sidebar_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        center_layout = QHBoxLayout()
-        center_layout.addLayout(sidebar_layout)
-        center_layout.addWidget(self.create_RGA_plot(self.rga_plot_widget))
+        splitter = QSplitter(Qt.Horizontal)
+        splitter.addWidget(sidebar_widget)
+        splitter.addWidget(self.create_RGA_plot(self.rga_plot_widget))
+        splitter.setSizes([200, 600])
 
-        layout.addLayout(center_layout)
+        # center_layout = QHBoxLayout()
+        # center_layout.addLayout(sidebar_layout)
+        # center_layout.addWidget(self.create_RGA_plot(self.rga_plot_widget))
+        # center_layout.setStretch(1, 3)  
+
+        layout.addWidget(splitter)
 
         central_widget = QWidget()
         central_widget.setLayout(layout)
@@ -69,8 +82,37 @@ class MainWindow(QMainWindow):
 
         return group_box
 
-    def create_scan_table():
-        pass
+    def create_scan_table(self):
+        
+        group_box = QGroupBox("Scans")
+
+        self.list = QListWidget()
+
+        button = QPushButton()
+
+        self.list.addItem(QListWidgetItem("Geeks"))
+        self.list.setItemWidget(QListWidgetItem("Geeks"), button)
+
+        # self.table = QTableWidget()
+        # self.table.setColumnCount(3)
+        # self.table.setRowCount(1)
+        # self.table.setHorizontalHeaderLabels(["Colour","Name","Range"])
+        # self.table.setItem(0,0,QTableWidgetItem('#ffffff'))
+        # self.table.setItem(0,1,QTableWidgetItem("White"))
+        # self.table.setItem(0,2,QTableWidgetItem("12-14"))
+
+        # header = self.table.horizontalHeader()
+        # header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        # header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        # header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.list)
+
+        group_box.setLayout(layout)
+
+        return group_box
+        
 
     def open_rga_scan(self):
 
@@ -80,8 +122,8 @@ class MainWindow(QMainWindow):
             scan = RgaScan(file)
             self.rga_scans.add_scan(scan)
 
-    def on_scan_added(self, scan: RgaScan):
+    def on_scan_added(self, scans: RgaScanArray):
         
-        self.rga_plot_widget.add_plot(scan)
+        self.rga_plot_widget.replot(self.rga_scans)
 
     
