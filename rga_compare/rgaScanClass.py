@@ -227,7 +227,7 @@ class RgaScan:
                         break
 
             # Makes scan spectra into np array for easier usage
-            self.spectra = np.array(self.spectra)
+            self.spectra = np.asarray(self.spectra)
 
     def amu_axis(self) -> np.ndarray:
         """Creates the x axis data for an AMU vs. y Plot
@@ -243,8 +243,8 @@ class RgaScan:
     def number_of_cyles(self) -> int:
         return len(self.spectra) - 1
 
-    def get_cycle(self, index: int) -> int:
-        return self.spectra[index]
+    def get_cycle(self, index: int) -> np.ndarray:
+        return np.array(self.spectra[index])
 
     # def torr_axis(self, index: int):
     #     """Returns the torr_array of a specific index, """

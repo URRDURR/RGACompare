@@ -129,7 +129,7 @@ class MainWindow(QMainWindow):
         remove_plot_button.clicked.connect(lambda: self.rga_scan_list.remove_scan(scan_added))
         remove_plot_button.clicked.connect(lambda: self.list.takeItem(self.list.row(list_item)))
 
-        toggle_visibility_button = QPushButton("Toggle_Visibility")
+        toggle_visibility_button = QPushButton("Hide")
         toggle_visibility_button.setCheckable(True)
         toggle_visibility_button.setChecked(False)
         # toggle_visibility_button.clicked.connect(lambda: list_widget.setWindowOpacity(0.5))

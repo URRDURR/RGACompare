@@ -14,10 +14,10 @@ class RGAPlot(pg.PlotWidget):
         self.getPlotItem().setDownsampling(mode="peak", auto=True)  # Reduce points when zoomed out
 
         self.log_mode = False  # Set to False since plot is made to begin in Linear mode
-        self.x_lim_upper = None
-        self.x_lim_lower = None
-        self.y_lim_upper = None
-        self.y_lim_lower = None
+        self.x_lim_upper = -1
+        self.x_lim_lower = float("inf")
+        self.y_lim_upper = -1
+        self.y_lim_lower = float("inf")
 
         self.set_plot_theme()
 
@@ -32,7 +32,10 @@ class RGAPlot(pg.PlotWidget):
         y_lim_upper = -1
         y_lim_lower = float("inf")
 
-        # Clear and replot
+        # # Clear and replot
+        # for item in self.getPlotItem().listDataItems():
+        #     self.getPlotItem().removeItem(item)
+
         view_box.clear()
 
         # sets the view back to default conditions when all plots are removed
@@ -66,6 +69,9 @@ class RGAPlot(pg.PlotWidget):
         self.y_lim_lower = y_lim_lower
 
         self.set_axis_limits()
+
+        view_box.addItem(self.vLine)
+        view_box.addItem(self.label)
 
     def add_plot(self, scan: RgaScan):
 
@@ -116,36 +122,15 @@ class RGAPlot(pg.PlotWidget):
         self.plotItem.getAxis("left").setPen("#cdd6f4")
         self.plotItem.showGrid(x=True, y=True, alpha=0.1)
 
-        # 1. Store multiple curves in a list
-        self.curves = []
-        self.colors = ["#89b4fa", "#a6e3a1", "#f38ba8", "#fab387", "#cba6f7"]
+        # 3. Enhanced Interactivity
+        self.vLine = pg.InfiniteLine(angle=90, movable=False, pen="#f5e0dc")
+        self.addItem(self.vLine, ignoreBounds=True)
 
-        # # 2. Add n plots (Example: 3 plots)
-        # for i in range(3):
-        #     x_data = np.arange(10)
-        #     y_data = np.random.randint(1, 25, 10)
-        #     color = self.colors[i % len(self.colors)]
+        # Tracking Label (HTML allows for multiple lines of data)
+        self.label = pg.TextItem(anchor=(0, 1), color="#cdd6f4")
+        self.addItem(self.label)
 
-        #     # Create curve
-        #     curve = self.plot(x_data, y_data,
-        #                       pen=pg.mkPen(color, width=2),
-        #                       symbol='o', symbolSize=6,
-        #                       symbolBrush=color, name=f"Sensor {i+1}")
-
-        #     # Store data inside the curve object for easy retrieval in hover
-        #     curve.x_values = x_data
-        #     curve.y_values = y_data
-        #     self.curves.append(curve)
-
-        # # 3. Enhanced Interactivity
-        # self.vLine = pg.InfiniteLine(angle=90, movable=False, pen='#f5e0dc')
-        # self.addItem(self.vLine, ignoreBounds=True)
-
-        # # Tracking Label (HTML allows for multiple lines of data)
-        # self.label = pg.TextItem(anchor=(0, 1), color='#cdd6f4')
-        # self.addItem(self.label)
-
-        # self.proxy = pg.SignalProxy(self.scene().sigMouseMoved, rateLimit=280, slot=self.update_hover)
+        self.proxy = pg.SignalProxy(self.scene().sigMouseMoved, rateLimit=60, slot=self.update_hover)
 
     def update_hover(self, event):
         pos = event[0]
@@ -153,32 +138,41 @@ class RGAPlot(pg.PlotWidget):
             mousePoint = self.getPlotItem().vb.mapSceneToView(pos)
             x = mousePoint.x()
 
-            # 1. Update the vertical line position
-            self.vLine.setPos(x)
+            if not self.scan_list:
+                pass
+            elif x < self.x_lim_lower:
+                x = self.x_lim_lower
+            elif x > self.x_lim_upper:
+                x = self.x_lim_upper
 
             # 2. Build the HTML string for the label
             # We can loop through the curves you stored in self.curves
             label_html = f"<div style='background-color: rgba(30, 30, 46, 150); padding: 5px; border: 1px solid #cdd6f4;'>"
-            label_html += f"<b style='color: #f5e0dc;'>Time: {x:.2f}</b><br>"
+            label_html += f"<b style='color: #f5e0dc;'>AMU: {x:.2f}</b><br>"
 
             found_data = False
-            for i, curve in enumerate(self.curves):
+            for i, scan in enumerate(self.scan_list):
+                cycle = scan.get_cycle(scan.number_of_cyles() - 1)
                 # Simple logic: find the y-value closest to the current mouse x
                 # This assumes x_data is sorted
-                idx = np.searchsorted(curve.x_values, x)
-                if 0 <= idx < len(curve.y_values):
-                    y_val = curve.y_values[idx]
-                    color = self.colors[i % len(self.colors)]
-                    label_html += f"<span style='color: {color};'>Sensor {i+1}: {y_val:.2f}</span><br>"
+                scan_x = scan.amu_axis()
+                index = np.argmin(np.abs(scan_x - x))
+                if 0 <= index < len(cycle):
+                    y_val = cycle[index]
+                    label_html += f"<span style='color: {scan.colour};'>Scan {i+1}: {y_val:.3e}</span><br>"
                     found_data = True
+                    # print(f"x: {x}, y:{y_val}")
 
             label_html += "</div>"
 
+            self.vLine.setPos(x)
             # 3. Update label text and position
             if found_data:
+                # snap_x_pos = scan_x[index]
+                # self.vLine.setPos(snap_x_pos)
                 self.label.setHtml(label_html)
                 # Position the label slightly offset from the mouse
-                self.label.setPos(mousePoint.x(), mousePoint.y())
+                self.label.setPos(x, mousePoint.y())
 
 
 # class TempPlot(pg.PlotWidget):
