@@ -131,18 +131,19 @@ class MainWindow(QMainWindow):
 
         toggle_visibility_button = QPushButton("Toggle_Visibility")
         toggle_visibility_button.setCheckable(True)
+        toggle_visibility_button.setChecked(False)
         # toggle_visibility_button.clicked.connect(lambda: list_widget.setWindowOpacity(0.5))
-        # toggle_visibility_button.toggled.connect(lambda checked: 
-        #                                          toggle_visibility_button.clicked.connect(lambda: self.rga_plot.add_plot(scan_added)) if checked
-        #                                          else toggle_visibility_button.clicked.connect(lambda: self.rga_plot.remove_plot(scan_added))
-        #                                             )
+        toggle_visibility_button.toggled.connect(lambda checked: 
+                                                 self.rga_plot.remove_plot(scan_added) if checked
+                                                 else self.rga_plot.add_plot(scan_added)
+                                                    )
 
         top_layout = QHBoxLayout()
         top_layout.addWidget(colour_icon)
         top_layout.addWidget(name)
 
         bottom_layout = QHBoxLayout()
-        # bottom_layout.addWidget(toggle_visibility_button)
+        bottom_layout.addWidget(toggle_visibility_button)
         bottom_layout.addWidget(remove_plot_button)
 
         total_layout = QVBoxLayout()
