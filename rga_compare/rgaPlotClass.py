@@ -8,7 +8,7 @@ class RGAPlot(pg.PlotWidget):
     def __init__(self):
         super().__init__()
 
-        # self.scans_objects = []
+        self.scan_list: list[RgaScan] = []
 
         self.getPlotItem().setClipToView(True)  # Stops rendering points that are off-screen
         self.getPlotItem().setDownsampling(mode="peak", auto=True)  # Reduce points when zoomed out
@@ -21,7 +21,7 @@ class RGAPlot(pg.PlotWidget):
 
         self.set_plot_theme()
 
-    def replot(self, scans: RgaScanList):
+    def replot(self):
 
         # Aspect representing the characteristics of the viewbox/viewable area
         view_box = self.getPlotItem().getViewBox()
@@ -33,17 +33,17 @@ class RGAPlot(pg.PlotWidget):
         y_lim_lower = float("inf")
 
         # Clear and replot
-        self.clear()
+        view_box.clear()
 
         # sets the view back to default conditions when all plots are removed
-        if len(scans) == 0:
-            self.setLimits(xMin=-100, xMax=100, yMin=-100, yMax=100)
+        if len(self.scan_list) == 0:
+            view_box.setLimits(xMin=-100, xMax=100, yMin=-100, yMax=100)
             view_box.setRange(xRange=(0, 1), yRange=(0, 1))
             return
 
         # Plots every scan in the RgaScanList
-        for i in range(len(scans)):
-            scan = scans.get_scan(i)
+        for i in range(len(self.scan_list)):
+            scan = self.scan_list[i]
             cycle = scan.get_cycle(scan.number_of_cyles() - 1)
             self.getPlotItem().plot(scan.amu_axis(), cycle, pen=pg.mkPen(scan.colour, width=2))
 
@@ -66,6 +66,15 @@ class RGAPlot(pg.PlotWidget):
         self.y_lim_lower = y_lim_lower
 
         self.set_axis_limits()
+
+    def add_plot(self, scan: RgaScan):
+
+        self.scan_list.append(scan)
+        self.replot()
+
+    def remove_plot(self, scan: RgaScan):
+        self.scan_list.remove(scan)
+        self.replot()
 
     def set_axis_limits(self):
 
@@ -90,7 +99,7 @@ class RGAPlot(pg.PlotWidget):
             # Sets linear y axis limits
             view_box.setLimits(yMin=self.y_lim_lower - padding_y, yMax=self.y_lim_upper + padding_y)
 
-    def change_axis_scale(self, log_mode: bool):
+    def set_axis_scale(self, log_mode: bool):
 
         self.log_mode = log_mode
         if len([item for item in self.listDataItems() if isinstance(item, pg.PlotDataItem)]) != 0:
