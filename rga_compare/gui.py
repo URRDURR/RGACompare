@@ -76,7 +76,7 @@ class MainWindow(QMainWindow):
         lin_button = QRadioButton("Linear")
         log_button = QRadioButton("Log")
         lin_button.setChecked(True)
-        log_button.toggled.connect(self.rga_plot.change_axis_scale)
+        log_button.toggled.connect(self.rga_plot.set_axis_scale)
 
         layout = QHBoxLayout()
         layout.addWidget(lin_button)
@@ -129,8 +129,13 @@ class MainWindow(QMainWindow):
         remove_plot_button.clicked.connect(lambda: self.rga_scan_list.remove_scan(scan_added))
         remove_plot_button.clicked.connect(lambda: self.list.takeItem(self.list.row(list_item)))
 
-        # toggle_visibility_button = QPushButton("Toggle_Visibility")
+        toggle_visibility_button = QPushButton("Toggle_Visibility")
+        toggle_visibility_button.setCheckable(True)
         # toggle_visibility_button.clicked.connect(lambda: list_widget.setWindowOpacity(0.5))
+        # toggle_visibility_button.toggled.connect(lambda checked: 
+        #                                          toggle_visibility_button.clicked.connect(lambda: self.rga_plot.add_plot(scan_added)) if checked
+        #                                          else toggle_visibility_button.clicked.connect(lambda: self.rga_plot.remove_plot(scan_added))
+        #                                             )
 
         top_layout = QHBoxLayout()
         top_layout.addWidget(colour_icon)
@@ -164,7 +169,7 @@ class MainWindow(QMainWindow):
         Args:
             scan_added (RgaScan): The RgaScan object of the newly added scan
         """
-        self.rga_plot.replot(self.rga_scan_list)
+        self.rga_plot.add_plot(scan_added)
 
         scan_name = scan_added.file_identifier
         scan_colour = scan_added.colour
@@ -176,4 +181,4 @@ class MainWindow(QMainWindow):
         Args:
             scan_removed (_type_): The RgaScan object of the newly added scan
         """
-        self.rga_plot.replot(self.rga_scan_list)
+        self.rga_plot.remove_plot(scan_removed)
