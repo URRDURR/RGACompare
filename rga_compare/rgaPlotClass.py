@@ -8,7 +8,7 @@ class RGAPlot(pg.PlotWidget):
     def __init__(self):
         super().__init__()
 
-        # self.scans_objects = []
+        self.scans_objects = []
 
         self.getPlotItem().setClipToView(True)  # Stops rendering points that are off-screen
         self.getPlotItem().setDownsampling(mode="peak", auto=True)  # Reduce points when zoomed out
