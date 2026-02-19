@@ -19,10 +19,11 @@ from PySide6.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QMenuBar,
+    QTabWidget,
 )
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QIcon, QColor, QPixmap
-from rgaPlotClass import RGAPlot
+from rgaPlotClass import RGAPlot, TorrPlot
 from rgaScanClass import RgaScanList, RgaScan
 
 
@@ -31,6 +32,7 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.rga_plot = RGAPlot()
+        self.torr_plot = TorrPlot()
         self.rga_scan_list = RgaScanList()
 
         self.setWindowTitle("RGA Compare")
@@ -38,6 +40,15 @@ class MainWindow(QMainWindow):
 
         file_button = QPushButton("Open Scans")
         file_button.clicked.connect(self.open_rga_scan)
+
+        torr_layout = QVBoxLayout()
+        torr_layout.addWidget(self.torr_plot)
+        torr_box = QGroupBox()
+        torr_box.setLayout(torr_layout)
+
+        self.plot_tabs = QTabWidget()
+        self.plot_tabs.addTab(self.create_RGA_plot(self.rga_plot), "RGA Plot")
+        self.plot_tabs.addTab(torr_box, "Torr Plot")
 
         sidebar_layout = QVBoxLayout()
         sidebar_layout.addWidget(self.create_linear_log_buttons())
@@ -49,7 +60,8 @@ class MainWindow(QMainWindow):
 
         splitter = QSplitter(Qt.Horizontal)
         splitter.addWidget(sidebar_widget)
-        splitter.addWidget(self.create_RGA_plot(self.rga_plot))
+        splitter.addWidget(self.plot_tabs)
+        # splitter.addWidget(self.create_RGA_plot(self.rga_plot))
         splitter.setSizes([200, 600])
 
         self.menu_bar = self.menuBar()
@@ -91,9 +103,9 @@ class MainWindow(QMainWindow):
         """Generates the Plot for the RGA data (mostly here for organization)"""
 
         layout = QVBoxLayout()
-        layout.addWidget(rga_plot)
+        # layout.addWidget(rga_plot)
 
-        group_box = QGroupBox("RGA Plot")
+        group_box = QGroupBox(layout.addWidget(rga_plot))
         group_box.setLayout(layout)
 
         return group_box
@@ -171,6 +183,7 @@ class MainWindow(QMainWindow):
             scan_added (RgaScan): The RgaScan object of the newly added scan
         """
         self.rga_plot.add_plot(scan_added)
+        self.torr_plot.add_plot(scan_added)
 
         scan_name = scan_added.file_identifier
         scan_colour = scan_added.colour
@@ -183,3 +196,4 @@ class MainWindow(QMainWindow):
             scan_removed (_type_): The RgaScan object of the newly added scan
         """
         self.rga_plot.remove_plot(scan_removed)
+        self.torr_plot.remove_plot(scan_removed)
