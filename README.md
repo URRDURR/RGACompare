@@ -1,16 +1,10 @@
-<p align="center">
-    <a href="https://github.com/URRDURR/RGACompare">
-        <img src="https://github.com/URRDURR/RGACompare/blob/main/resources/icons/rga_compare.png" height="200">
-    </a>
-</p>
-
 # RGACompare
 
 A program for plotting multiple RGASoft .rgadata scan files for easy comparison, helpful assessing vacuum conditions over time.
 
 <p align="center">
     <a href="https://github.com/URRDURR/RGACompare">
-        <img src="https://github.com/URRDURR/RGACompare/blob/main/resources/preview_images/rga_compare_being_used.png" height="300">
+        <img src="https://github.com/URRDURR/RGACompare/blob/main/resources/preview_images/rga_compare_being_used.png" height="480">
     </a>
 </p>
 
