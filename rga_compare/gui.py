@@ -23,7 +23,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QIcon, QColor, QPixmap
-from rgaPlotClass import RGAPlot, TorrPlot
+from rgaPlotClass import RGAPlot
 from rgaScanClass import RgaScanList, RgaScan
 
 
@@ -32,7 +32,7 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.rga_plot = RGAPlot()
-        self.torr_plot = TorrPlot()
+        self.torr_plot = RGAPlot()
         self.rga_scan_list = RgaScanList()
 
         self.setWindowTitle("RGA Compare")
