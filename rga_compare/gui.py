@@ -174,6 +174,7 @@ class MainWindow(QMainWindow):
 
         scan_name = scan_added.file_identifier
         scan_colour = scan_added.colour
+        scan_name = scan_added.file_name
         self.create_scan_widget(scan_name, scan_colour, scan_added)
 
     def on_scan_removed(self, scan_removed: RgaScan):

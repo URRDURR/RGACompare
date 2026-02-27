@@ -21,6 +21,9 @@ class RGAPlot(pg.PlotWidget):
 
         self.set_plot_theme()
 
+        self.getPlotItem().setLabel("left", text="Intensity", units="Torr", siPrefixEnableRanges=((0, 0),(0,0)))
+        self.getPlotItem().setLabel("bottom", text="Mass", units="AMU", siPrefixEnableRanges=((0, 0),(0,0)))
+
     def replot(self):
 
         # Aspect representing the characteristics of the viewbox/viewable area

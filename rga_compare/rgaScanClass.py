@@ -15,6 +15,7 @@
 # With an installed Python 3.6+, run the script as follows:
 # python <directory>\dataFileReader.py "<data_directory>\<file_name>.rgadata"
 
+import os
 import struct
 import json
 import numpy as np
@@ -62,7 +63,7 @@ class RgaScan:
         filename (string): file location
     """
 
-    def __init__(self, filename):
+    def __init__(self, file_path):
         self.file_identifier = None
         self.file_version = None
         self.is_single_precision = None
@@ -86,11 +87,12 @@ class RgaScan:
         self.analog_Iin_signals = None
         self.gpio_in_signals = None
 
-        self.load_scan_data(filename)
-
         self.colour = None  # Unique colour for gui purpouses
+        self.file_name = None
 
-    def load_scan_data(self, filename: str):
+        self.load_scan_data(file_path)
+
+    def load_scan_data(self, file_path: str):
         """
         Loads in the entirety of the scan data and metadata for the RGASoft .rgadata filetype.
         Takes in the location of a .rgadata file and populates the RgaScan object
@@ -101,7 +103,10 @@ class RgaScan:
         Args:
             filename (string): file location
         """
-        with open(filename, "rb") as f:
+        self.file_name = os.path.basename(file_path)
+        self.file_name = self.file_name.rstrip(".rgadata")
+        print(self.file_name)
+        with open(file_path, "rb") as f:
             # File description - 32-byte string
             self.f_identifier = f.read(32)
 
