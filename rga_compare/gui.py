@@ -24,7 +24,7 @@ from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QIcon, QColor, QPixmap
 from rgaPlotClass import RGAPlot
 from rgaScanClass import RgaScanList, RgaScan
-
+from utils import asset_path
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -34,7 +34,7 @@ class MainWindow(QMainWindow):
         self.rga_scan_list = RgaScanList()
 
         self.setWindowTitle("RGA Compare")
-        self.setWindowIcon(QIcon("./resources/icons/rga_compare.ico"))
+        self.setWindowIcon(QIcon(asset_path("resources/icons/rga_compare.ico")))
 
         file_button = QPushButton("Open Scans")
         file_button.clicked.connect(self.open_rga_scan)
