@@ -3,8 +3,7 @@ import numpy as np
 from PySide6 import QtWidgets, QtCore
 from rgaScanClass import RgaScan, RgaScanList
 
-
-class RGAPlot(pg.PlotWidget):
+class Plot(pg.PlotWidget):
     def __init__(self):
         super().__init__()
 
@@ -110,10 +109,14 @@ class RGAPlot(pg.PlotWidget):
 
     def set_axis_scale(self, log_mode: bool):
 
-        self.log_mode = log_mode
+        vb = self.getPlotItem().getViewBox()
+        _, log_y = vb.state['logMode']
+        self.log_mode = not log_y
+
+        # self.log_mode = log_mode
         if len([item for item in self.listDataItems() if isinstance(item, pg.PlotDataItem)]) != 0:
             self.set_axis_limits()
-        self.getPlotItem().setLogMode(y=log_mode)
+        self.getPlotItem().setLogMode(y=(self.log_mode))
 
     def set_plot_theme(self, title="System Telemetry"):
         """
@@ -177,6 +180,11 @@ class RGAPlot(pg.PlotWidget):
                 # Position the label slightly offset from the mouse
                 self.label.setPos(x, mousePoint.y())
 
+
+
+class RGAPlot(Plot):
+    def __init__(self):
+        super().__init__()
 
 # class TempPlot(pg.PlotWidget):
 #     def __init__(self):
